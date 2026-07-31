@@ -76,7 +76,7 @@ reports the real version, commit, and build date.
    `LINKWARDEN_BASE_URL` and `LINKWARDEN_TOKEN` → **Apply**.
 4. Check the host port. The template defaults to `8080`; change it if something
    else on the box already has it.
-5. LAN endpoint: `http://<unraid-ip>:8080/mcp`.
+5. LAN endpoint: `http://<unraid-ip>:8095/mcp`.
 
 ### Updates
 
