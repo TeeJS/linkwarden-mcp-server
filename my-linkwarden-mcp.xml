@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>linkwarden-mcp</Name>
+  <Repository>ghcr.io/teejs/linkwarden-mcp-server:latest</Repository>
+  <Registry/>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support/>
+  <Project/>
+  <ReadMe/>
+  <Overview>Linkwarden MCP Server (Streamable HTTP). Exposes a Linkwarden instance to MCP clients. Point clients at http://[IP]:[PORT:8080]/mcp, or front it with the reverse proxy for remote access from Claude.</Overview>
+  <Category/>
+  <WebUI></WebUI>
+  <TemplateURL/>
+  <Icon></Icon>
+  <ExtraParams>--restart unless-stopped</ExtraParams>
+  <PostArgs></PostArgs>
+  <CPUset/>
+  <DateInstalled/>
+  <DonateText/>
+  <DonateLink/>
+  <Requires/>
+  <Config Name="Port 8080" Target="8080" Default="8080" Mode="tcp" Description="Host port for the MCP endpoint. Change it if 8080 is already taken on this box." Type="Port" Display="always" Required="true" Mask="false">8080</Config>
+  <Config Name="LINKWARDEN_BASE_URL" Target="LINKWARDEN_BASE_URL" Default="" Mode="" Description="URL of your Linkwarden instance, no trailing slash." Type="Variable" Display="always" Required="true" Mask="false">https://linkwarden.example.com</Config>
+  <Config Name="LINKWARDEN_TOKEN" Target="LINKWARDEN_TOKEN" Default="" Mode="" Description="Linkwarden API token (Settings - Access Tokens)." Type="Variable" Display="always" Required="true" Mask="true"></Config>
+  <Config Name="TOOLSETS" Target="TOOLSETS" Default="" Mode="" Description="Comma-separated toolsets to enable: search, collection, link, tags. Empty enables all." Type="Variable" Display="always" Required="false" Mask="false"></Config>
+  <Config Name="READ_ONLY" Target="READ_ONLY" Default="false" Mode="" Description="Set true to disable every write tool (create/delete/archive)." Type="Variable" Display="always" Required="false" Mask="false">false</Config>
+  <Config Name="MCP_PORT" Target="MCP_PORT" Default="8080" Mode="" Description="Port inside the container. Must match the container side of the port mapping above." Type="Variable" Display="always" Required="false" Mask="false">8080</Config>
+  <Config Name="MCP_OAUTH_ENABLED" Target="MCP_OAUTH_ENABLED" Default="false" Mode="" Description="Set true to require OAuth 2.1 bearer tokens. Leave false only if the endpoint is not reachable from the internet." Type="Variable" Display="always" Required="false" Mask="false">false</Config>
+  <Config Name="MCP_OAUTH_ISSUER" Target="MCP_OAUTH_ISSUER" Default="" Mode="" Description="OIDC provider URL. Must match the issuer the provider reports exactly, trailing slash included." Type="Variable" Display="always" Required="false" Mask="false"></Config>
+  <Config Name="MCP_SERVER_URL" Target="MCP_SERVER_URL" Default="" Mode="" Description="Public base URL this server is reached on, e.g. https://linkwarden-mcp.example.com. No path." Type="Variable" Display="always" Required="false" Mask="false"></Config>
+  <Config Name="MCP_READ_GROUPS" Target="MCP_READ_GROUPS" Default="" Mode="" Description="Comma-separated IdP groups granted read tools only. Empty disables group checking." Type="Variable" Display="always" Required="false" Mask="false"></Config>
+  <Config Name="MCP_WRITE_GROUPS" Target="MCP_WRITE_GROUPS" Default="" Mode="" Description="Comma-separated IdP groups granted every tool. Empty disables group checking." Type="Variable" Display="always" Required="false" Mask="false"></Config>
+  <Config Name="MCP_GROUPS_CLAIM" Target="MCP_GROUPS_CLAIM" Default="groups" Mode="" Description="Token claim holding the caller's groups." Type="Variable" Display="advanced" Required="false" Mask="false">groups</Config>
+  <TailscaleStateDir/>
+</Container>

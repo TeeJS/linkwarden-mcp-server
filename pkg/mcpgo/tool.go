@@ -33,6 +33,9 @@ type Tool interface {
 
 	// GetHandler internal method for fetching the underlying handler
 	GetHandler() ToolHandler
+
+	// GetName returns the tool's name as exposed over MCP
+	GetName() string
 }
 
 // PropertyOption represents a customization option for
@@ -214,6 +217,11 @@ type mark3labsToolImpl struct {
 	description string
 	handler     ToolHandler
 	parameters  []ToolParameter
+}
+
+// GetName returns the tool's name as exposed over MCP
+func (t *mark3labsToolImpl) GetName() string {
+	return t.name
 }
 
 // NewTool creates a new tool with the given

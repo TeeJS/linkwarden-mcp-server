@@ -44,17 +44,17 @@ The easiest way to use linkwarden-mcp-server is via Docker. Pre-built images are
 #### Pull the latest image
 
 ```bash
-docker pull ghcr.io/irfansofyana/linkwarden-mcp-server:latest
+docker pull ghcr.io/teejs/linkwarden-mcp-server:latest
 ```
 
 #### Pull a specific version
 
 ```bash
 # Pull a specific version (e.g., v1.0.0)
-docker pull ghcr.io/irfansofyana/linkwarden-mcp-server:1.0.0
+docker pull ghcr.io/teejs/linkwarden-mcp-server:1.0.0
 
 # Or with 'v' prefix
-docker pull ghcr.io/irfansofyana/linkwarden-mcp-server:v1.0.0
+docker pull ghcr.io/teejs/linkwarden-mcp-server:v1.0.0
 ```
 
 **Available tags:**
@@ -226,7 +226,18 @@ export TOOLSETS=search,collection,link,tags
 
 ## Usage with MCP Clients
 
-The linkwarden-mcp-server uses stdio transport and can be integrated with any MCP-compatible client.
+The linkwarden-mcp-server supports two transports:
+
+- **`stdio`** — the client spawns the process and talks over pipes. Used by local
+  clients such as Claude Desktop and Claude Code.
+- **`http`** — streamable HTTP, for running as a long-lived service that remote
+  MCP clients connect to over the network.
+
+> **The container defaults to `http`.** Every `docker run` example below therefore
+> ends with an explicit `stdio` argument. Leave it off and you get the HTTP server.
+
+For running as a service on Docker or Unraid, and for connecting Claude on the web
+to it, see **[README-DOCKER.md](README-DOCKER.md)**.
 
 ### Using Docker with Claude Desktop
 
@@ -244,7 +255,8 @@ Add to your `claude_desktop_config.json`:
         "--init",
         "-e", "LINKWARDEN_BASE_URL=https://your-linkwarden-instance.com",
         "-e", "LINKWARDEN_TOKEN=your-api-token-here",
-        "ghcr.io/irfansofyana/linkwarden-mcp-server:latest"
+        "ghcr.io/teejs/linkwarden-mcp-server:latest",
+        "stdio"
       ]
     }
   }
@@ -267,7 +279,8 @@ Add to your `claude_desktop_config.json`:
         "-e", "LINKWARDEN_TOKEN=your-api-token-here",
         "-e", "TOOLSETS=search,collection,link",
         "-e", "READ_ONLY=true",
-        "ghcr.io/irfansofyana/linkwarden-mcp-server:latest"
+        "ghcr.io/teejs/linkwarden-mcp-server:latest",
+        "stdio"
       ]
     }
   }
@@ -290,7 +303,8 @@ Add to your MCP settings in Claude Code:
         "--init",
         "-e", "LINKWARDEN_BASE_URL=https://your-linkwarden-instance.com",
         "-e", "LINKWARDEN_TOKEN=your-api-token-here",
-        "ghcr.io/irfansofyana/linkwarden-mcp-server:latest"
+        "ghcr.io/teejs/linkwarden-mcp-server:latest",
+        "stdio"
       ]
     }
   }
@@ -305,7 +319,7 @@ For any MCP client that supports stdio transport:
 docker run --rm -i \
   -e LINKWARDEN_BASE_URL="https://your-linkwarden-instance.com" \
   -e LINKWARDEN_TOKEN="your-api-token-here" \
-  ghcr.io/irfansofyana/linkwarden-mcp-server:latest
+  ghcr.io/teejs/linkwarden-mcp-server:latest stdio
 ```
 
 **Docker run options explained:**
@@ -319,12 +333,15 @@ docker run --rm -i \
 To verify the Docker image works correctly:
 
 ```bash
-# Test with --version (not yet implemented, will connect to stdio)
+# Report the build metadata baked into the image
+docker run --rm ghcr.io/teejs/linkwarden-mcp-server:latest --version
+
+# Drive a single stdio request through the container
 echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"1.0","clientInfo":{"name":"test","version":"1.0"}}}' | \
 docker run --rm -i \
   -e LINKWARDEN_BASE_URL="https://your-linkwarden-instance.com" \
   -e LINKWARDEN_TOKEN="your-api-token-here" \
-  ghcr.io/irfansofyana/linkwarden-mcp-server:latest
+  ghcr.io/teejs/linkwarden-mcp-server:latest stdio
 ```
 
 ## Binary-based Integration

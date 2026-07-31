@@ -6,6 +6,10 @@ on:
       - main
     tags:
       - 'v*.*.*'
+  # Allows building from a branch to verify a change before it reaches main.
+  # Only the default branch gets the 'latest' tag, so a branch run publishes
+  # just its sha- tag and cannot clobber the released image.
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
@@ -40,6 +44,8 @@ jobs:
           tags: |
             # Tag with 'latest' on main branch
             type=raw,value=latest,enable={{is_default_branch}}
+            # Immutable per-commit tag (e.g., sha-a1b2c3d)
+            type=sha,prefix=sha-
             # Tag with version on tags (e.g., v1.0.0 -> 1.0.0)
             type=semver,pattern={{version}}
             # Tag with major.minor on tags (e.g., v1.0.0 -> 1.0)
@@ -63,6 +69,10 @@ jobs:
             BUILD_DATE=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          # Attestations add unknown/unknown entries to the manifest list,
+          # which confuses Unraid's update check and the GHCR package UI.
+          provenance: false
+          sbom: false
 
       - name: Output image details
         run: |
