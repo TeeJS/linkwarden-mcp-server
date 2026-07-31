@@ -21,7 +21,6 @@ Both transports ship in the same image:
 | `LINKWARDEN_TOKEN`         | yes      | —         | Linkwarden API token (Settings → Access Tokens).                             |
 | `TOOLSETS`                 | no       | all       | Comma-separated: `search`, `collection`, `link`, `tags`.                     |
 | `READ_ONLY`                | no       | `false`   | Disables every write tool.                                                   |
-| `MCP_PORT`                 | no       | `8080`    | Port inside the container.                                                   |
 | `MCP_HOST`                 | no       | `0.0.0.0` | Bind address inside the container.                                           |
 | `MCP_PATH`                 | no       | `/mcp`    | Path the MCP endpoint is served on.                                          |
 | `MCP_OAUTH_ENABLED`        | no       | `false`   | Require OAuth 2.1 bearer tokens.                                             |
