@@ -22,7 +22,7 @@
   <DonateText/>
   <DonateLink/>
   <Requires/>
-  <Config Name="Port 8095" Target="8080" Default="8095" Mode="tcp" Description="Host port for the MCP endpoint. Only the host side varies; the container always listens on 8080, so leave MCP_PORT alone when changing this." Type="Port" Display="always" Required="true" Mask="false">8095</Config>
+  <Config Name="Port 8100" Target="8080" Default="8100" Mode="tcp" Description="Host port for the MCP endpoint. Only the host side varies; the container always listens on 8080, so the variable was removed so there is nothing to keep in sync." Type="Port" Display="always" Required="true" Mask="false">8100</Config>
   <Config Name="LINKWARDEN_BASE_URL" Target="LINKWARDEN_BASE_URL" Default="" Mode="" Description="URL of your Linkwarden instance, no trailing slash." Type="Variable" Display="always" Required="true" Mask="false">https://linkwarden.example.com</Config>
   <Config Name="LINKWARDEN_TOKEN" Target="LINKWARDEN_TOKEN" Default="" Mode="" Description="Linkwarden API token (Settings - Access Tokens)." Type="Variable" Display="always" Required="true" Mask="true"></Config>
   <Config Name="TOOLSETS" Target="TOOLSETS" Default="" Mode="" Description="Comma-separated toolsets to enable: search, collection, link, tags. Empty enables all." Type="Variable" Display="always" Required="false" Mask="false"></Config>
