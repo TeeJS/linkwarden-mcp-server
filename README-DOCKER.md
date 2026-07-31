@@ -46,7 +46,7 @@ should return `{"status":"ok"}`.
 ## Image builds (GitHub Actions → GHCR)
 
 `.github/workflows/docker-publish.yml` builds on every push to `main` and every
-`v*.*.*` tag, for `linux/amd64` and `linux/arm64`:
+`v*.*.*` tag, for `linux/amd64` (the Unraid target; arm64 is not built):
 
 ```
 ghcr.io/teejs/linkwarden-mcp-server:latest
@@ -58,10 +58,11 @@ Two one-time setup steps:
 
 1. **Enable Actions on the fork.** GitHub suppresses workflows on forked repos
    until the owner confirms once in the Actions tab. Until then nothing builds.
-2. **Make the package public.** GHCR packages default to private even from a
-   public repo. Go to **GitHub → Packages → linkwarden-mcp-server → Package
-   settings → Change visibility → Public** so Unraid can pull without
-   credentials. (Or keep it private and `docker login ghcr.io` on the Unraid host.)
+2. **Check the package is public**, so Unraid can pull without credentials.
+   Verify with an unauthenticated pull from a machine that has never logged in to
+   ghcr.io. If it fails, go to **GitHub → Packages → linkwarden-mcp-server →
+   Package settings → Change visibility → Public** (or keep it private and
+   `docker login ghcr.io` on the Unraid host).
 
 Build metadata is embedded via ldflags, so `docker run --rm <image> --version`
 reports the real version, commit, and build date.

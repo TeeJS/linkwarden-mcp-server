@@ -49,7 +49,7 @@ Automates Docker image building and publishing with:
   - Push to `main` branch (after PR merge)
   - Git tags matching `v*.*.*` pattern
 - **Features:**
-  - Multi-platform builds (linux/amd64, linux/arm64)
+  - linux/amd64 builds (the Unraid target)
   - Automatic semantic versioning
   - GitHub Container Registry publishing
   - Build caching for faster builds
@@ -115,7 +115,7 @@ To build the Docker image locally:
 docker build -t linkwarden-mcp-server:local .
 
 # Build for multiple platforms
-docker buildx build --platform linux/amd64,linux/arm64 -t linkwarden-mcp-server:local .
+docker buildx build --platform linux/amd64 -t linkwarden-mcp-server:local .
 ```
 
 ## GitHub Actions Workflow

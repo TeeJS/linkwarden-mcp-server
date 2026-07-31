@@ -100,8 +100,8 @@ the same image does both.
   workflow's `build-args` are silently discarded and the ldflags can only produce defaults.
   **This is the version-metadata fix.**
 - `FROM --platform=$BUILDPLATFORM` + `ARG TARGETARCH` + `GOARCH=${TARGETARCH}`, replacing the
-  hardcoded `GOARCH=amd64` on line 33. Fixes the broken arm64 image; also converts an
-  emulated arm64 build into a native cross-compile, which is free since CGO is already off.
+  hardcoded `GOARCH=amd64` on line 33. The workflow now builds amd64 only (Unraid is
+  x86_64), but resolving the arch properly keeps adding a platform back a one-line change.
 - `EXPOSE 8080`, `HEALTHCHECK` against `/healthz` using busybox wget (no curl needed on Alpine).
 - `ENTRYPOINT ["/app/linkwarden-mcp-server"]` + `CMD ["http"]`.
   **Breaking change:** the container's default subcommand becomes `http` instead of `stdio`.
@@ -154,7 +154,7 @@ Two Authelia prerequisites that are **not defaults**:
 - **OAuth optional and off by default**, matching plex. Avoids a blocking decision and lets
   the same image serve the authless-behind-proxy case and the Cowork-with-consent case.
 - **`GOARCH` fix included.** Two lines in a file already being edited; also converts the
-  emulated arm64 build into a native cross-compile.
+  build into a proper cross-compile rather than a hardcoded arch.
 - **Container default subcommand becomes `http`.** stdio still available explicitly.
 
 ## Manual steps required from the user (cannot be automated)
