@@ -4,7 +4,7 @@
 # Pinned to the build platform so cross-compilation is done by the Go
 # toolchain rather than by emulating the target platform, which is both
 # correct and far faster for the arm64 leg.
-FROM --platform=$BUILDPLATFORM golang:1.23.2-alpine AS builder
+FROM --platform=$BUILDPLATFORM golang:1.26.5-alpine AS builder
 
 # Install build dependencies
 RUN apk add --no-cache \
@@ -20,8 +20,12 @@ WORKDIR /build
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Install oapi-codegen
-RUN go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
+# Install oapi-codegen. Pinned rather than @latest: an unpinned tool means a
+# new upstream release can raise its Go floor and break this build with no
+# change on our side, which is exactly what happened with v2.8.0.
+ARG OAPI_CODEGEN_VERSION=v2.8.0
+RUN go install \
+    github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@${OAPI_CODEGEN_VERSION}
 
 # Copy the rest of the source code
 COPY . .

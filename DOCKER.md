@@ -16,7 +16,7 @@ The linkwarden-mcp-server is now available as a Docker image published to GitHub
 **Location:** `Dockerfile`
 
 A multi-stage Dockerfile that:
-- **Stage 1 (Builder)**: Uses `golang:1.23.2-alpine` to build the binary
+- **Stage 1 (Builder)**: Uses `golang:1.26.5-alpine` to build the binary
   - Installs build dependencies (make, bash, git, oapi-codegen)
   - Generates SDK from OpenAPI specification
   - Builds a static binary with optimizations

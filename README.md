@@ -75,7 +75,7 @@ make build
 ```
 
 **Prerequisites for building:**
-- Go 1.23 or later
+- Go 1.26 or later
 - Make
 
 ### C. Using Go Install
@@ -375,7 +375,7 @@ The server uses stdio transport, so it can be integrated with any MCP client tha
 
 ### Prerequisites
 
-- Go 1.23 or later
+- Go 1.26 or later
 - Make
 - Docker (for certain development tasks)
 

@@ -192,7 +192,7 @@ make generate-sdk
 
 ## Development Setup
 
-1. **Prerequisites**: Go 1.23+, Make, Linkwarden instance
+1. **Prerequisites**: Go 1.26+, Make, Linkwarden instance
 2. **Setup**: `make install-deps`
 3. **Configuration**: Copy `.env.example` and configure your instance
 4. **Development**: `make dev`

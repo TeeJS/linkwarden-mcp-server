@@ -21,7 +21,7 @@ echo -e "${YELLOW}Generating Linkwarden Go SDK...${NC}"
 # Check if oapi-codegen is installed
 if ! command -v oapi-codegen &> /dev/null; then
     echo -e "${RED}Error: oapi-codegen is not installed${NC}"
-    echo "Install it with: go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest"
+    echo "Install it with: go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.8.0"
     exit 1
 fi
 
