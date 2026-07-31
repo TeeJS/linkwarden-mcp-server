@@ -115,6 +115,27 @@ func (tg *ToolsetGroup) EnableToolsets(names []string) error {
 	return nil
 }
 
+// WriteToolNames returns the names of every write tool across all enabled
+// toolsets. Callers use this to decide, per request, whether the caller is
+// allowed to invoke a given tool.
+//
+// In globally read-only mode this is empty, because AddWriteTools drops
+// write tools entirely rather than registering them.
+func (tg *ToolsetGroup) WriteToolNames() map[string]bool {
+	names := make(map[string]bool)
+
+	for _, toolset := range tg.Toolsets {
+		if !toolset.Enabled || toolset.readOnly {
+			continue
+		}
+		for _, tool := range toolset.writeTools {
+			names[tool.GetName()] = true
+		}
+	}
+
+	return names
+}
+
 // RegisterTools registers all active toolsets with the server
 func (tg *ToolsetGroup) RegisterTools(s mcpgo.Server) {
 	for _, toolset := range tg.Toolsets {

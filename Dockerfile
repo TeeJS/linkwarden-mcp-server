@@ -1,7 +1,10 @@
 # syntax=docker/dockerfile:1
 
 # Build stage
-FROM golang:1.23.2-alpine AS builder
+# Pinned to the build platform so cross-compilation is done by the Go
+# toolchain rather than by emulating the target platform, which is both
+# correct and far faster for the arm64 leg.
+FROM --platform=$BUILDPLATFORM golang:1.26.5-alpine AS builder
 
 # Install build dependencies
 RUN apk add --no-cache \
@@ -17,8 +20,12 @@ WORKDIR /build
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Install oapi-codegen
-RUN go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
+# Install oapi-codegen. Pinned rather than @latest: an unpinned tool means a
+# new upstream release can raise its Go floor and break this build with no
+# change on our side, which is exactly what happened with v2.8.0.
+ARG OAPI_CODEGEN_VERSION=v2.8.0
+RUN go install \
+    github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@${OAPI_CODEGEN_VERSION}
 
 # Copy the rest of the source code
 COPY . .
@@ -27,11 +34,21 @@ COPY . .
 RUN chmod +x ./scripts/generate-sdk.sh && \
     ./scripts/generate-sdk.sh
 
+# Build metadata, supplied by the CI workflow. These must be declared for
+# the corresponding --build-arg values to reach the build at all.
+ARG VERSION=dev
+ARG COMMIT=unknown
+ARG BUILD_DATE=unknown
+
+# Provided automatically by buildx for the target platform
+ARG TARGETOS
+ARG TARGETARCH
+
 # Build the binary with optimizations
 # CGO_ENABLED=0 for static binary
-# -ldflags for smaller binary size
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
-    -ldflags="-w -s -X main.version=${VERSION:-dev} -X main.commit=${COMMIT:-unknown} -X main.date=${BUILD_DATE:-unknown}" \
+# -ldflags for smaller binary size and embedded build metadata
+RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH:-amd64} go build \
+    -ldflags="-w -s -X main.version=${VERSION} -X main.commit=${COMMIT} -X main.date=${BUILD_DATE}" \
     -o linkwarden-mcp-server \
     ./cmd/linkwarden-mcp-server
 
@@ -62,18 +79,32 @@ ENV LINKWARDEN_BASE_URL="" \
     LINKWARDEN_TOKEN="" \
     TOOLSETS="" \
     READ_ONLY="false" \
-    LOG_FILE=""
+    LOG_FILE="" \
+    MCP_HOST="0.0.0.0" \
+    MCP_PORT="8080" \
+    MCP_PATH="/mcp" \
+    MCP_OAUTH_ENABLED="false" \
+    MCP_OAUTH_ISSUER="" \
+    MCP_SERVER_URL="" \
+    MCP_OAUTH_AUDIENCE="" \
+    MCP_OAUTH_JWKS_CACHE_TTL="3600"
 
-# Expose no ports (stdio-based communication)
-# The MCP server communicates via stdin/stdout
+# Streamable HTTP transport
+EXPOSE 8080
 
-# Set entrypoint
-ENTRYPOINT ["/app/linkwarden-mcp-server", "stdio"]
+# /healthz is served outside the auth gate so this works with OAuth enabled.
+# wget comes from busybox; no need to add curl.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD wget -q -O /dev/null http://127.0.0.1:${MCP_PORT:-8080}/healthz || exit 1
 
-# Health check is not applicable for stdio transport
+# The subcommand is part of CMD rather than ENTRYPOINT so it can be
+# overridden: `docker run --rm -i <image> stdio` still speaks stdio.
+ENTRYPOINT ["/app/linkwarden-mcp-server"]
+CMD ["http"]
+
 # Labels for metadata
 LABEL org.opencontainers.image.title="Linkwarden MCP Server" \
       org.opencontainers.image.description="Model Context Protocol server for Linkwarden" \
-      org.opencontainers.image.source="https://github.com/irfansofyana/linkwarden-mcp-server" \
-      org.opencontainers.image.vendor="irfansofyana" \
+      org.opencontainers.image.source="https://github.com/TeeJS/linkwarden-mcp-server" \
+      org.opencontainers.image.vendor="TeeJS" \
       org.opencontainers.image.licenses="MIT"

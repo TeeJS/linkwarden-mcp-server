@@ -34,7 +34,7 @@ generate-sdk: ## Generate Go SDK from OpenAPI specification
 # Install development dependencies
 install-deps: ## Install required development dependencies
 	@echo "Installing oapi-codegen..."
-	go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
+	go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.8.0
 	@echo "Installing other dependencies..."
 	go mod download
 

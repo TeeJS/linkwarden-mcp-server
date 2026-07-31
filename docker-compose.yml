@@ -1,0 +1,21 @@
+services:
+  linkwarden-mcp:
+    build: .
+    image: linkwarden-mcp:latest
+    container_name: linkwarden-mcp
+    restart: unless-stopped
+    ports:
+      - "${MCP_PORT:-8080}:8080"
+    environment:
+      LINKWARDEN_BASE_URL: "${LINKWARDEN_BASE_URL:?set LINKWARDEN_BASE_URL in a .env file next to this compose file}"
+      LINKWARDEN_TOKEN: "${LINKWARDEN_TOKEN:?set LINKWARDEN_TOKEN in a .env file next to this compose file}"
+      TOOLSETS: "${TOOLSETS:-}"
+      READ_ONLY: "${READ_ONLY:-false}"
+      MCP_PORT: "8080"
+      MCP_PATH: "${MCP_PATH:-/mcp}"
+      # Leave OAuth off for local testing. Turn it on before exposing this
+      # to anything beyond localhost.
+      MCP_OAUTH_ENABLED: "${MCP_OAUTH_ENABLED:-false}"
+      MCP_OAUTH_ISSUER: "${MCP_OAUTH_ISSUER:-}"
+      MCP_SERVER_URL: "${MCP_SERVER_URL:-}"
+      MCP_OAUTH_AUDIENCE: "${MCP_OAUTH_AUDIENCE:-}"

@@ -106,6 +106,71 @@ func WithToolCapabilities(enabled bool) ServerOption {
 	}
 }
 
+// WithWriteToolGuard restricts write tools to callers holding write
+// permission, as resolved from their identity provider groups.
+//
+// It gates both halves deliberately. The filter keeps write tools out of
+// tools/list so a read-only caller never sees them — advertising a tool the
+// caller cannot invoke just makes the model retry against a wall. The
+// middleware then enforces the same rule on tools/call, because a client is
+// free to invoke a tool it was never listed.
+func WithWriteToolGuard(writeTools map[string]bool) []ServerOption {
+	if len(writeTools) == 0 {
+		return nil
+	}
+
+	return []ServerOption{
+		func(s OptionSetter) error {
+			return s.SetOption(
+				server.WithToolFilter(writeToolFilter(writeTools)))
+		},
+		func(s OptionSetter) error {
+			return s.SetOption(
+				server.WithToolHandlerMiddleware(
+					writeToolMiddleware(writeTools)))
+		},
+	}
+}
+
+// writeToolFilter hides write tools from callers without write permission
+func writeToolFilter(writeTools map[string]bool) server.ToolFilterFunc {
+	return func(ctx context.Context, tools []mcp.Tool) []mcp.Tool {
+		if PermissionFromContext(ctx) == PermissionWrite {
+			return tools
+		}
+
+		visible := make([]mcp.Tool, 0, len(tools))
+		for _, tool := range tools {
+			if !writeTools[tool.Name] {
+				visible = append(visible, tool)
+			}
+		}
+
+		return visible
+	}
+}
+
+// writeToolMiddleware refuses write tool calls from callers without write
+// permission, independently of whether the tool was ever listed
+func writeToolMiddleware(
+	writeTools map[string]bool,
+) server.ToolHandlerMiddleware {
+	return func(next server.ToolHandlerFunc) server.ToolHandlerFunc {
+		return func(
+			ctx context.Context, req mcp.CallToolRequest,
+		) (*mcp.CallToolResult, error) {
+			if writeTools[req.Params.Name] &&
+				PermissionFromContext(ctx) != PermissionWrite {
+				return mcp.NewToolResultError(
+					"permission denied: " + req.Params.Name +
+						" requires write access"), nil
+			}
+
+			return next(ctx, req)
+		}
+	}
+}
+
 // SetupHooks creates and configures the server hooks with logging
 func SetupHooks(obs *observability.Observability) *server.Hooks {
 	hooks := &server.Hooks{}

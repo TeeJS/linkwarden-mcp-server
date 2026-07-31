@@ -25,21 +25,27 @@ func NewLinkwardenMcpServer(
 		return nil, fmt.Errorf("linkwarden client is required")
 	}
 
+	// Toolsets are built first so the write-tool names are known before the
+	// server is constructed; the per-request guard is a server option.
+	toolsets, err := NewToolSets(obs, client, enabledToolsets, readOnly)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create toolsets: %w", err)
+	}
+
 	defaultOpts := []mcpgo.ServerOption{
 		mcpgo.WithLogging(),
 		mcpgo.WithResourceCapabilities(true, true),
 		mcpgo.WithToolCapabilities(true),
 		mcpgo.WithHooks(mcpgo.SetupHooks(obs))}
 
+	defaultOpts = append(defaultOpts,
+		mcpgo.WithWriteToolGuard(toolsets.WriteToolNames())...)
+
 	// Merge with user-provided options
 	mcpOpts = append(defaultOpts, mcpOpts...)
 
 	server := mcpgo.NewMcpServer("linkwarden-mcp", "0.0.1", mcpOpts...)
 
-	toolsets, err := NewToolSets(obs, client, enabledToolsets, readOnly)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create toolsets: %w", err)
-	}
 	toolsets.RegisterTools(server)
 
 	return server, nil

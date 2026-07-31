@@ -1,6 +1,9 @@
 # Docker Setup Guide
 
-This document provides information about the Docker setup and GitHub Container Registry publishing for linkwarden-mcp-server.
+This document covers the Docker build and GitHub Container Registry publishing pipeline.
+
+> For **running** the container — Unraid install, updates, reverse-proxy exposure, and
+> connecting Claude on the web — see **[README-DOCKER.md](README-DOCKER.md)**.
 
 ## Overview
 
@@ -13,7 +16,7 @@ The linkwarden-mcp-server is now available as a Docker image published to GitHub
 **Location:** `Dockerfile`
 
 A multi-stage Dockerfile that:
-- **Stage 1 (Builder)**: Uses `golang:1.23.2-alpine` to build the binary
+- **Stage 1 (Builder)**: Uses `golang:1.26.5-alpine` to build the binary
   - Installs build dependencies (make, bash, git, oapi-codegen)
   - Generates SDK from OpenAPI specification
   - Builds a static binary with optimizations
@@ -21,7 +24,7 @@ A multi-stage Dockerfile that:
   - Installs ca-certificates for HTTPS
   - Creates non-root user for security
   - Sets up environment variables
-  - Configures entrypoint for stdio communication
+  - Entrypoint is the binary; the default command is `http`, overridable with `stdio`
 
 **Image Size:** Approximately 20-30 MB (final Alpine image with binary)
 
@@ -46,7 +49,7 @@ Automates Docker image building and publishing with:
   - Push to `main` branch (after PR merge)
   - Git tags matching `v*.*.*` pattern
 - **Features:**
-  - Multi-platform builds (linux/amd64, linux/arm64)
+  - linux/amd64 builds (the Unraid target)
   - Automatic semantic versioning
   - GitHub Container Registry publishing
   - Build caching for faster builds
@@ -71,10 +74,10 @@ Added comprehensive Docker usage instructions:
 
 ```bash
 # Latest version
-docker pull ghcr.io/irfansofyana/linkwarden-mcp-server:latest
+docker pull ghcr.io/teejs/linkwarden-mcp-server:latest
 
 # Specific version
-docker pull ghcr.io/irfansofyana/linkwarden-mcp-server:1.0.0
+docker pull ghcr.io/teejs/linkwarden-mcp-server:1.0.0
 ```
 
 ### Run the Image
@@ -83,7 +86,13 @@ docker pull ghcr.io/irfansofyana/linkwarden-mcp-server:1.0.0
 docker run --rm -i \
   -e LINKWARDEN_BASE_URL="https://your-linkwarden-instance.com" \
   -e LINKWARDEN_TOKEN="your-api-token-here" \
-  ghcr.io/irfansofyana/linkwarden-mcp-server:latest
+  ghcr.io/teejs/linkwarden-mcp-server:latest
+```
+
+That starts the HTTP server. For stdio, append the subcommand:
+
+```bash
+docker run --rm -i \n  -e LINKWARDEN_BASE_URL="https://your-linkwarden-instance.com" \n  -e LINKWARDEN_TOKEN="your-api-token-here" \n  ghcr.io/teejs/linkwarden-mcp-server:latest stdio
 ```
 
 ### With Optional Configuration
@@ -94,7 +103,7 @@ docker run --rm -i \
   -e LINKWARDEN_TOKEN="your-api-token-here" \
   -e TOOLSETS="search,collection,link" \
   -e READ_ONLY="true" \
-  ghcr.io/irfansofyana/linkwarden-mcp-server:latest
+  ghcr.io/teejs/linkwarden-mcp-server:latest
 ```
 
 ## Building Locally
@@ -106,7 +115,7 @@ To build the Docker image locally:
 docker build -t linkwarden-mcp-server:local .
 
 # Build for multiple platforms
-docker buildx build --platform linux/amd64,linux/arm64 -t linkwarden-mcp-server:local .
+docker buildx build --platform linux/amd64 -t linkwarden-mcp-server:local .
 ```
 
 ## GitHub Actions Workflow
@@ -120,7 +129,7 @@ The workflow automatically triggers when:
    git push origin main
    ```
    - Creates image tagged as `latest`
-   - Creates image tagged with `main-<sha>`
+   - Creates image tagged with `sha-<short>`
 
 2. **Create a version tag:**
    ```bash
@@ -149,7 +158,7 @@ The workflow follows semantic versioning (semver):
 
 Images are published to:
 ```
-ghcr.io/irfansofyana/linkwarden-mcp-server
+ghcr.io/teejs/linkwarden-mcp-server
 ```
 
 View published images at:

@@ -4,7 +4,7 @@ This guide covers how to set up a development environment, understand the codeba
 
 ## Prerequisites
 
-- Go 1.23 or later
+- Go 1.26 or later
 - Git
 - Make
 - Docker (optional, for certain development tasks)
