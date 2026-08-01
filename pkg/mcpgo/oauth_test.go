@@ -270,6 +270,24 @@ func TestProtectedResourceMetadata(t *testing.T) {
 	assert.Equal(t, []string{"header"}, doc.BearerMethods)
 }
 
+// Env vars get pasted by hand into container UIs, so leading/trailing
+// whitespace is routine and must not reach the discovery URL
+func TestConfigToleratesWhitespace(t *testing.T) {
+	rs, err := NewResourceServer(OAuthConfig{
+		Enabled:   true,
+		Issuer:    "\thttps://auth.example.com \n",
+		ServerURL: "  https://mcp.example.com/  ",
+		MCPPath:   " /mcp ",
+		Groups:    GroupPolicy{Claim: " groups ", WriteGroups: []string{"admins"}},
+	}, testObs())
+	require.NoError(t, err)
+
+	assert.Equal(t, "https://auth.example.com", rs.cfg.Issuer)
+	assert.Equal(t, "https://mcp.example.com", rs.cfg.ServerURL)
+	assert.Equal(t, "https://mcp.example.com/mcp", rs.ResourceURL())
+	assert.Equal(t, "groups", rs.cfg.Groups.ClaimName())
+}
+
 func TestMiddlewareRejectsMissingToken(t *testing.T) {
 	rs, err := NewResourceServer(OAuthConfig{
 		Enabled:   true,

@@ -51,8 +51,26 @@ type OAuthConfig struct {
 	Groups GroupPolicy
 }
 
+// normalize trims surrounding whitespace from every string field.
+//
+// These arrive as environment variables, typically pasted by hand into a
+// container UI, so a stray tab or trailing space is routine. Left alone it
+// produces an unusable discovery URL and an error that points nowhere near
+// the actual mistake.
+func (c OAuthConfig) normalize() OAuthConfig {
+	c.Issuer = strings.TrimSpace(c.Issuer)
+	c.ServerURL = strings.TrimSuffix(strings.TrimSpace(c.ServerURL), "/")
+	c.MCPPath = strings.TrimSpace(c.MCPPath)
+	c.Audience = strings.TrimSpace(c.Audience)
+	c.Groups.Claim = strings.TrimSpace(c.Groups.Claim)
+
+	return c
+}
+
 // Validate checks that the configuration is usable
 func (c OAuthConfig) Validate() error {
+	c = c.normalize()
+
 	if !c.Enabled {
 		return nil
 	}
@@ -102,7 +120,7 @@ func NewResourceServer(
 		return nil, err
 	}
 
-	cfg.ServerURL = strings.TrimSuffix(cfg.ServerURL, "/")
+	cfg = cfg.normalize()
 	if cfg.MCPPath == "" {
 		cfg.MCPPath = "/mcp"
 	}
