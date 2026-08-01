@@ -63,7 +63,14 @@ jobs:
           # The build still resolves the arch via TARGETARCH rather than
           # hardcoding it, so adding a platform back here is a one-line change.
           platforms: linux/amd64
-          push: true
+          # Unraid's update check (DockerClient.php) sends an Accept header of
+          # docker manifest.list.v2 / manifest.v2 / oci.image.index.v1. A
+          # single-platform buildx push produces a bare
+          # application/vnd.oci.image.manifest.v1+json, which is NOT in that
+          # list, so the Docker tab reports "not available" and can never
+          # detect updates. Forcing Docker media types keeps the image
+          # readable by Unraid.
+          outputs: type=image,push=true,oci-mediatypes=false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
