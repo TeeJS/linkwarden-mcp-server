@@ -268,7 +268,7 @@ func runHTTPServer(
 		}
 
 		obs.Logger.Infof(ctx, "OAUTH_ENABLED",
-			"issuer", oauthCfg.Issuer,
+			"issuer", resourceSrv.Issuer(),
 			"resource", resourceSrv.ResourceURL())
 	} else {
 		obs.Logger.Warningf(ctx, "OAUTH_DISABLED",

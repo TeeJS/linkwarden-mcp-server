@@ -137,6 +137,13 @@ func (rs *ResourceServer) ResourceURL() string {
 	return rs.cfg.ServerURL + rs.cfg.MCPPath
 }
 
+// Issuer returns the normalized issuer, which is what discovery actually
+// uses. Logging the raw config value instead is actively misleading when
+// diagnosing a discovery failure.
+func (rs *ResourceServer) Issuer() string {
+	return rs.cfg.Issuer
+}
+
 // metadataURL is the absolute URL of the protected resource metadata
 // document, advertised in WWW-Authenticate on a 401.
 func (rs *ResourceServer) metadataURL() string {
@@ -281,7 +288,10 @@ func (rs *ResourceServer) Middleware(next http.Handler) http.Handler {
 			return
 		}
 
-		rs.obs.Logger.Debugf(ctx, "AUTHZ_GRANTED",
+		// Logged at info, not debug: who was granted what access is an audit
+		// record, and it is useless if it only appears when someone thinks to
+		// raise the log level after the fact.
+		rs.obs.Logger.Infof(ctx, "AUTHZ_GRANTED",
 			"subject", claims["sub"],
 			"permission", permission.String())
 

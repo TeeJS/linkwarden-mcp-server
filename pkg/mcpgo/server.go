@@ -2,6 +2,8 @@ package mcpgo
 
 import (
 	"context"
+	"fmt"
+	"regexp"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
@@ -171,6 +173,20 @@ func writeToolMiddleware(
 	}
 }
 
+// sensitiveHeaders matches header values that must never reach a log file.
+//
+// Over HTTP transport the request carries the caller's bearer token, and the
+// mcp-go request structs embed the full header map. Logging the message
+// verbatim writes a replayable access token to disk on every single call.
+var sensitiveHeaders = regexp.MustCompile(
+	`(?i)\b(Authorization|Cookie|Set-Cookie|X-Api-Key):\[[^\]]*\]`)
+
+// redact renders a value for logging with credential-bearing headers removed
+func redact(message any) string {
+	return sensitiveHeaders.ReplaceAllString(
+		fmt.Sprintf("%+v", message), "$1:[REDACTED]")
+}
+
 // SetupHooks creates and configures the server hooks with logging
 func SetupHooks(obs *observability.Observability) *server.Hooks {
 	hooks := &server.Hooks{}
@@ -179,7 +195,7 @@ func SetupHooks(obs *observability.Observability) *server.Hooks {
 		obs.Logger.Infof(ctx, "MCP_METHOD_CALLED",
 			"method", method,
 			"id", id,
-			"message", message)
+			"message", redact(message))
 	})
 
 	hooks.AddOnSuccess(func(ctx context.Context, id any, method mcp.MCPMethod,
@@ -209,7 +225,7 @@ func SetupHooks(obs *observability.Observability) *server.Hooks {
 		obs.Logger.Infof(ctx, "MCP_METHOD_FAILED",
 			"method", method,
 			"id", id,
-			"message", message,
+			"message", redact(message),
 			"error", err)
 	})
 
@@ -217,14 +233,14 @@ func SetupHooks(obs *observability.Observability) *server.Hooks {
 		message *mcp.CallToolRequest) {
 		obs.Logger.Infof(ctx, "TOOL_CALL_STARTED",
 			"id", id,
-			"request", message)
+			"request", redact(message))
 	})
 
 	hooks.AddAfterCallTool(func(ctx context.Context, id any,
 		message *mcp.CallToolRequest, result *mcp.CallToolResult) {
 		obs.Logger.Infof(ctx, "TOOL_CALL_COMPLETED",
 			"id", id,
-			"request", message,
+			"request", redact(message),
 			"result", result)
 	})
 
