@@ -205,7 +205,11 @@ func (rs *ResourceServer) verifierFor(
 func (rs *ResourceServer) challenge(
 	w http.ResponseWriter, oauthErr, description string,
 ) {
-	header := fmt.Sprintf("Bearer resource_metadata=%q", rs.metadataURL())
+	// The scope parameter is how a client is told which scopes to request.
+	// Without it the client asks for everything the authorization server
+	// advertises, which strict providers reject outright.
+	header := fmt.Sprintf("Bearer resource_metadata=%q, scope=%q",
+		rs.metadataURL(), strings.Join(requiredScopes, " "))
 	if oauthErr != "" {
 		header += fmt.Sprintf(", error=%q, error_description=%q",
 			oauthErr, description)
@@ -317,6 +321,21 @@ func (rs *ResourceServer) Handlers() map[string]http.Handler {
 	return handlers
 }
 
+// requiredScopes is what this server actually needs: an identity, the group
+// membership tool access is derived from, and a refresh token.
+//
+// Advertising these matters. A client that is not told which scopes to ask for
+// falls back to requesting everything the authorization server advertises, and
+// a provider that rejects — rather than ignores — a scope its client is not
+// allowed to request will fail the whole authorization request. That surfaces
+// as an opaque "authorization failed" with nothing useful on the client side.
+var requiredScopes = []string{
+	"openid",
+	"profile",
+	"groups",
+	"offline_access",
+}
+
 // handleProtectedResource serves the RFC 9728 protected resource metadata
 func (rs *ResourceServer) handleProtectedResource(
 	w http.ResponseWriter, r *http.Request,
@@ -325,6 +344,7 @@ func (rs *ResourceServer) handleProtectedResource(
 		"resource":                 rs.ResourceURL(),
 		"authorization_servers":    []string{rs.cfg.Issuer},
 		"bearer_methods_supported": []string{"header"},
+		"scopes_supported":         requiredScopes,
 	})
 }
 

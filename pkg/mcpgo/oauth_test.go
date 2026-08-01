@@ -259,11 +259,17 @@ func TestProtectedResourceMetadata(t *testing.T) {
 		Resource             string   `json:"resource"`
 		AuthorizationServers []string `json:"authorization_servers"`
 		BearerMethods        []string `json:"bearer_methods_supported"`
+		ScopesSupported      []string `json:"scopes_supported"`
 	}
 	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &doc))
 
 	// Must match the URL entered in the client exactly, path included
 	assert.Equal(t, "https://mcp.example.com/mcp", doc.Resource)
+	// Declaring scopes stops the client from requesting everything the
+	// authorization server advertises
+	assert.Equal(t,
+		[]string{"openid", "profile", "groups", "offline_access"},
+		doc.ScopesSupported)
 	assert.Equal(t,
 		[]string{"https://auth.example.com/application/o/linkwarden/"},
 		doc.AuthorizationServers)
@@ -309,7 +315,8 @@ func TestMiddlewareRejectsMissingToken(t *testing.T) {
 	// Claude only honours this header on a 401, and needs the pointer to
 	// locate the authorization server
 	assert.Equal(t,
-		`Bearer resource_metadata="https://mcp.example.com/.well-known/oauth-protected-resource"`,
+		`Bearer resource_metadata="https://mcp.example.com/.well-known/oauth-protected-resource", `+
+			`scope="openid profile groups offline_access"`,
 		rec.Header().Get("WWW-Authenticate"))
 }
 
